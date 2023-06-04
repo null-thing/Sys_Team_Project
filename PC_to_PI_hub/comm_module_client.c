@@ -34,8 +34,12 @@ int main(void) {
     // do your behavior in here
 
 
-
-
+    // 예를 들어,
+    // use IO function such as read and write,
+    /*
+    char message[] = "hello server! from client.";
+    write(client_sock, message, sizeof(message)); //5번
+    */
 
     close(client_sock);
 }
