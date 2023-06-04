@@ -6,11 +6,10 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 
-PORT_NUMBER = 700; // set to desired port number
-SERVER_IP_ADDRESS = "192.168.0.4"; //set to desired ip address
-
 
 int main(void) {
+    char* SERVER_IP_ADDRESS = "192.168.0.4";
+    int PORT_NUMBER = 700; // set to desired port number    
     int socket_desc , client_sock, client_size;
 
     int server_socket = socket(AF_INET, SOCK_STREAM, 0);
