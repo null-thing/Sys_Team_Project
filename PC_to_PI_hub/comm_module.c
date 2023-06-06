@@ -17,40 +17,55 @@ int readercount = 0;
 
 
 char* SERVER_IP_ADDRESS = "192.168.0.4";
-int PORT_NUMBER = 700; // set to desired port number    
+int PORT_NUMBER_PI = 8010; // set to desired port number    
+int PORT_NUMBER_GUI = 8011;
+
 
 int main(void) {
     
     int socket_desc , client_sock, client_size;
 
-    int server_socket = socket(AF_INET, SOCK_STREAM, 0);
-    if (server_socket == -1) {
-        perror("Socket creation failed");
+    int server_socket_PI = socket(AF_INET, SOCK_STREAM, 0);
+    int server_socket_GUI = socket(AF_INET, SOCK_STREAM, 0);
+    if (server_socket_PI == -1 | server_socket_GUI) {
+        perror("Server Socket creation failed");
         exit(EXIT_FAILURE);
     }
 
-    struct sockaddr_in server_addr ,client_addr;
-    memset(&server_addr, 0, sizeof(server_addr));
+    struct sockaddr_in server_addr_PI, server_addr_GUI, client_addr;
+    memset(&server_addr_PI, 0, sizeof(server_addr_PI));
+    memset(&server_addr_GUI, 0, sizeof(server_addr_PI));
 
-    server_addr.sin_family = AF_INET;
-    server_addr.sin_addr.s_addr = INADDR_ANY; // Listen on all available interfaces
-    server_addr.sin_port = htons(PORT_NUMBER); // Set the desired port number
+    server_addr_PI.sin_family = AF_INET;
+    server_addr_PI.sin_addr.s_addr = INADDR_ANY; // Listen on all available interfaces
+    server_addr_PI.sin_port = htons(PORT_NUMBER_PI); // Set the desired port number
 
-    if (bind(server_socket, (struct sockaddr *) &server_addr, sizeof(server_addr)) == -1) {
+    server_addr_GUI.sin_family = AF_INET;
+    server_addr_GUI.sin_addr.s_addr = INADDR_ANY; // Listen on all available interfaces
+    server_addr_GUI.sin_port = htons(PORT_NUMBER_GUI); // Set the desired port number
+
+
+    if (bind(server_socket_PI, (struct sockaddr *) &server_addr_PI, sizeof(server_addr_PI)) == -1 |
+        bind(server_socket_GUI, (struct sockaddr *) &server_addr_GUI, sizeof(server_addr_GUI)) == -1) {
         perror("Socket binding failed");
         exit(EXIT_FAILURE);
     }
 
-    if (listen(server_socket, 5) == -1) { // Maximum 5 pending connections
+    if (listen(server_socket_PI, 5) == -1) { // Maximum 5 pending connections
         perror("Socket listening failed");
         exit(EXIT_FAILURE);
     }
 
+    //debug?
+
+    printf("Server_PI linstening on port %d", PORT_NUMBER_PI);
+    printf("Server_GUI linstening on port %d", PORT_NUMBER_GUI); 
+    
     int client_socket;
     socklen_t client_address_length = sizeof(client_addr);
 
     // Accept the connection
-    client_socket = accept(server_socket, (struct sockaddr *)&client_addr, &client_address_length);    
+    client_socket = accept(server_socket_PI, (struct sockaddr *)&client_addr, &client_address_length);    
     if (client_socket == -1) {
         perror("Socket accepting failed");
         exit(EXIT_FAILURE);
@@ -60,7 +75,7 @@ int main(void) {
 
 
     close(client_socket);
-    close(server_socket);
+    close(server_socket_PI);
 }
 
 
