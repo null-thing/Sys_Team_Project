@@ -6,10 +6,21 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 
+#include <pthread.h>
+#include <semaphore.h>
+
+sem_t x,y;
+pthread_t tid;
+pthread_t thread1[100];
+pthread_t thread2[100];
+int readercount = 0;
+
+
+char* SERVER_IP_ADDRESS = "192.168.0.4";
+int PORT_NUMBER = 700; // set to desired port number    
 
 int main(void) {
-    char* SERVER_IP_ADDRESS = "192.168.0.4";
-    int PORT_NUMBER = 700; // set to desired port number    
+    
     int socket_desc , client_sock, client_size;
 
     int server_socket = socket(AF_INET, SOCK_STREAM, 0);
@@ -39,7 +50,7 @@ int main(void) {
     socklen_t client_address_length = sizeof(client_addr);
 
     // Accept the connection
-    client_socket = accept(server_socket, (struct sockaddr *)&client_addr, &client_address_length);
+    client_socket = accept(server_socket, (struct sockaddr *)&client_addr, &client_address_length);    
     if (client_socket == -1) {
         perror("Socket accepting failed");
         exit(EXIT_FAILURE);
@@ -50,4 +61,33 @@ int main(void) {
 
     close(client_socket);
     close(server_socket);
+}
+
+
+void* reader(void* param){
+    sem_wait(&x);
+    readercount++;
+
+    if (readercount == 1)
+        sem_wait(&y);
+
+    sem_post(&x);
+
+    printf("\n%d reader", readercount);
+
+    sleep(5);
+
+
+
+
+
+}
+
+void *client_handler_PI (){
+
+}
+
+void *client_hadler_GUI(){
+
+
 }
