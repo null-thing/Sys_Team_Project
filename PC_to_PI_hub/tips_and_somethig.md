@@ -1,4 +1,7 @@
-* 보내는 정보
+# This program is server in Both socket communication !!!
+## Communicate with this program as client
+
+* 보내는 정보 : port 8011
 - 문이 열림/닫힘
 - 불이 켜짐/꺼짐
 - 사진
@@ -19,7 +22,7 @@
 - 이후 쭉 반복
 
 
-* 받는 정보
+* 받는 정보 : Port 8010
 - 센서로부터의 정보
 - 광도 센서 정보
 - 사진
