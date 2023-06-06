@@ -1,4 +1,5 @@
 ### check list
+- [ ] 소켓통신 구현함?
 - [ ] 앞에서 오는 정보들을 받아낼수 있는가?
 - [ ] 사진을 저장할 수 있는가?
 - 도어 인풋 페이지
@@ -43,4 +44,25 @@
 3. 매 간격마다 새 정보 읽어주기
 4. 정보들 저장하기ir
 5. 시간 띄워주기
+
+## function introduction
+
+### start_door_num - 구현완.
+- start section
+- receive total door num that user wants
+
+### current_door_cli
+- main section
+- monitoring door situation per two seconds
+- if user want to see history, receive history command
+
+### history_reader
+- parameter: door number (int)
+- return: none
+- function: read {n}door history, show history on the cli 
+- if {n}door history not found, print history not found and break
+- remain infinitely if there is no quit signal
+
+
+
 
