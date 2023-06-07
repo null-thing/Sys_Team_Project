@@ -12,10 +12,10 @@
 #define SERVER_IP_ADDRESS "127.0.0.1"
 #define PORT_NUMBER_PI 8010    
 #define PORT_NUMBER_GUI 8011
-#define MAX_CLIENTS 10
+#define MAX_CLIENTS 5
 
 pthread_mutex_t mu_PI;
-pthread_t* thread_PI;
+pthread_t* thread_PI[MAX_CLIENTS];
 pthread_t thread_GUI[1];
 int readercount = 0;
 
