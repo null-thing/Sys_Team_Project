@@ -17,7 +17,7 @@ char* SERVER_IP_ADDRESS = "127.0.0.1"; //테스트용 노트북의 ip주소: rpi
 void send_flie_to_server(int client_socket, char* file_name, char* file_category){
     FILE* fp;
     int file_len, message_len, write_num;
-    char message_contents[1000],header_message_contents[1042];
+    char message_contents[1000],header_message_contents[1049];
 
     //header information: [pi_serial_num][file_category][file_len][message_len][message_contents]
     if(!strcmp(file_category, "txt")){
@@ -34,8 +34,9 @@ void send_flie_to_server(int client_socket, char* file_name, char* file_category
     while (!feof(fp))
     {
         message_len = fread(message_contents,sizeof(char),sizeof(message_contents),fp);
-        snprintf(header_message_contents,1042,"%010d\r\n%s\r\n%010d\r\n%010d\r\n%s\0",PI_SERIAL_NUM,file_category,file_len,message_len,message_contents);
-        
+        snprintf(header_message_contents,1049,"%010d+*+*%s+*+*%010d+*+*%010d+*+*%s",PI_SERIAL_NUM,file_category,file_len,message_len,message_contents);
+        printf("%s\n",message_contents);
+
         write_num = send(client_socket, header_message_contents, sizeof(header_message_contents),0);
         if(write_num == -1){
             printf("err!");
