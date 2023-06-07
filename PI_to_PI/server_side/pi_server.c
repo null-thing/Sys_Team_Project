@@ -14,7 +14,51 @@ char* SERVER_IP_ADDRESS = "127.0.0.1"; //테스트용 노트북의 ip주소: rpi
     Server pi - bridge pi
 */
 
+void recv_file_from_client(int client_socket){
+    FILE* fp;
+    int file_len, message_len, recv_bytes;
+    char* write_num, pi_serial_num,file_category, message_contents;
+    char recv_buf[1042], file_name[10];
 
+    //header information: [pi_serial_num][file_category][file_len][message_len][message_contents]
+
+    recv_bytes =  recv(client_socket, recv_buf, 1042, 0);
+    if (recv_bytes<0){
+        printf("err!");
+	}
+
+    pi_serial_num = strtok(recv_buf,"\r\n");
+    file_category = strtok(NULL, "\r\n");
+    file_len = atoi(strtok(NULL,"\r\n"));
+    message_len = atoi(strtok(NULL,"\r\n"));
+    message_contents = strtok(NULL,"\r\n");
+    strcpy(file_name, pi_serial_num);
+    strcat(file_name, ".");
+    strcat(file_name, file_category);
+
+    if(!strcmp(file_category, "txt")){
+        fp = fopen(file_name, "w");
+    }else{
+        fp = fopen(file_name, "wb");
+    }
+
+    fwrite(message_contents, sizeof(char), message_len,fp);
+    
+    while(message_len == 1000){
+        pi_serial_num = strtok(recv_buf,"\r\n");
+        file_category = strtok(NULL, "\r\n");
+        file_len = atoi(strtok(NULL,"\r\n"));
+        message_len = atoi(strtok(NULL,"\r\n"));
+        message_contents = strtok(NULL,"\r\n");
+        strcpy(file_name, pi_serial_num);
+        strcat(file_name, ".");
+        strcat(file_name, file_category);
+        fwrite(message_contents, sizeof(char), message_len,fp);
+    }
+
+    printf("file recv complete!\n");
+    fclose(fp);
+}
 int main(void) {
     int socket_desc , client_sock, client_size;
 
@@ -62,10 +106,6 @@ int main(void) {
     int recv_bytes;
     int i;
 
-    fp_txt = fopen("client_test.txt","w");
-    fp_img = fopen("image_test.jpg","wb");
-
-        puts("Connection accepted");
 
     recv_bytes = recv(client_socket, buf , 1000 , 0);
     if (recv_bytes<0){
@@ -76,52 +116,8 @@ int main(void) {
 //
     printf("test message:%s\n",buf);
 
+    recv_file_from_client(client_socket);
 
-    recv_bytes = recv(client_socket, buf , 1000 , 0);
-    if (recv_bytes<0){
-        printf("err!");
-	}
-    buf[recv_bytes] = '\0';
-
-
-    printf("test message:%s\n",buf);
-
-
-    if (recv(client_socket, buf , 1000 , 0) < 0){
-        printf("err!");
-	}
-
-    printf("txt_len:%s\n",buf);
-
-    txt_len = atoi(buf);
-    printf("txt_len:%d\n",txt_len);
-
-    if (recv(client_socket, buf , 1000 , 0) < 0){
-        printf("err!");
-	}
-    
-    printf("img_len:%s\n",buf);
-
-    img_len = atoi(buf);
-    printf("img_len:%d\n",img_len);
-
-    for(i=0;i<=((txt_len-(txt_len%1000))/1000);i++){
-        if (recv(client_socket, buf , 1000 , 0) < 0){
-            printf("err!");
-        }
-        fwrite(buf,sizeof(char),1000,fp_txt);
-	}
-
-    for(i=0;i<=((img_len-(img_len%1000))/1000);i++){
-        if (recv(client_socket, buf , 1000 , 0) < 0){
-            printf("err!");
-        }
-        fwrite(buf,sizeof(char),1000,fp_txt);
-    }
-
-
-    fclose(fp_txt);
-    fclose(fp_img);
 
     close(client_socket);
     close(server_socket);
