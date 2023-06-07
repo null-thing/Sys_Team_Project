@@ -4,7 +4,8 @@
 void read_text(char* text) {
 
 
+}
 
-
-
+void interpret() {
+    
 }

@@ -9,25 +9,27 @@
 #include <pthread.h>
 #include <semaphore.h>
 
-sem_t x,y;
+#define SERVER_IP_ADDRESS "127.0.0.1"
+#define PORT_NUMBER_PI 8010    
+#define PORT_NUMBER_GUI 8011
+#define MAX_CLIENTS 10
+
+pthread_mutex_t mu_PI, mu_GUI;
 pthread_t tid;
-pthread_t thread1[100];
-pthread_t thread2[100];
+pthread_t thread[2];
+pthread_t thread_PI[100];
+pthread_t thread_GUI[100];
 int readercount = 0;
-
-
-char* SERVER_IP_ADDRESS = "192.168.0.4";
-int PORT_NUMBER_PI = 8010; // set to desired port number    
-int PORT_NUMBER_GUI = 8011;
 
 
 int main(void) {
     
-    int socket_desc , client_sock, client_size;
+    int socket_desc , client_socket_PI, client_socket_GUI, client_size;
+    socklen_t client_address_length;
 
     int server_socket_PI = socket(AF_INET, SOCK_STREAM, 0);
     int server_socket_GUI = socket(AF_INET, SOCK_STREAM, 0);
-    if (server_socket_PI == -1 | server_socket_GUI) {
+    if (server_socket_PI == -1 | server_socket_GUI == -1) {
         perror("Server Socket creation failed");
         exit(EXIT_FAILURE);
     }
@@ -44,7 +46,8 @@ int main(void) {
     server_addr_GUI.sin_addr.s_addr = INADDR_ANY; // Listen on all available interfaces
     server_addr_GUI.sin_port = htons(PORT_NUMBER_GUI); // Set the desired port number
 
-
+    int num_PI_clients;
+    // number of GUI client is bound to 1
     if (bind(server_socket_PI, (struct sockaddr *) &server_addr_PI, sizeof(server_addr_PI)) == -1 |
         bind(server_socket_GUI, (struct sockaddr *) &server_addr_GUI, sizeof(server_addr_GUI)) == -1) {
         perror("Socket binding failed");
@@ -58,51 +61,83 @@ int main(void) {
 
     //debug?
 
-    printf("Server_PI linstening on port %d", PORT_NUMBER_PI);
-    printf("Server_GUI linstening on port %d", PORT_NUMBER_GUI); 
+    printf("Server_PI linstening on port %d\n", PORT_NUMBER_PI);
+    printf("Server_GUI linstening on port %d\n", PORT_NUMBER_GUI); 
     
-    int client_socket;
-    socklen_t client_address_length = sizeof(client_addr);
 
+    /*
+    client_address_length = sizeof(client_addr);
+    
     // Accept the connection
-    client_socket = accept(server_socket_PI, (struct sockaddr *)&client_addr, &client_address_length);    
-    if (client_socket == -1) {
+    client_socket_PI = accept(server_socket_PI, (struct sockaddr *)&client_addr, &client_address_length);    
+    if (client_socket_PI == -1) {
         perror("Socket accepting failed");
         exit(EXIT_FAILURE);
     }
+    */
+   int i =0;
 
-    // do your behavior in here
+    // threading test
+    while (1) {
+        // pthread_create(&(thread_PI[]), NULL, &client_handler_PI, NULL);
+        // pthread_create(&(thread_GUI[i]), NULL, &client_handler_GUI, NULL);
+
+        // Accept the connection
+        int i = 0;
+        client_address_length = sizeof(client_addr);
+        client_socket_PI = accept(server_socket_PI, (struct sockaddr *)&client_addr, &client_address_length);    
+        if (client_socket_PI == -1) {
+            perror("Socket accepting failed");
+            exit(EXIT_FAILURE);
+
+        int client_name;
+        recv(client_socket_PI, &client_name, sizeof(client_name),0);
+        
+
+        // recv(client_socket_GUI, &)
+        // pthread_create(&thread_PI[i]);
+        
 
 
-    close(client_socket);
+
+    }    
+        
+    }
+    char message[30];
+    int bytes_received = recv(client_socket_PI, message, sizeof(message)-1, 0); //3번
+    message[bytes_received] = '\0';
+    printf("from client : %s \n", message);
+
+    close(client_socket_PI);
+    close(client_socket_GUI);
     close(server_socket_PI);
+    close(server_socket_GUI);
 }
 
 
-void* reader(void* param){
-    sem_wait(&x);
-    readercount++;
-
-    if (readercount == 1)
-        sem_wait(&y);
-
-    sem_post(&x);
-
-    printf("\n%d reader", readercount);
-
-    sleep(5);
+void *client_handler_PI (void* arg){
+    pthread_mutex_lock(&mu_PI);
+    printf("PI client handler\n");
+    //arg will be..
 
 
+    
 
 
+    pthread_mutex_unlock(&mu_PI);
+    return NULL;
 
 }
 
-void *client_handler_PI (){
-
-}
-
-void *client_hadler_GUI(){
+void *client_hadler_GUI(void* arg){
+    pthread_mutex_lock(&mu_GUI);
 
 
+
+    printf("GUI client handler\n");
+
+
+    pthread_mutex_unlock(&mu_GUI);
+
+    return NULL;
 }
