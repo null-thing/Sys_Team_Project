@@ -9,12 +9,13 @@
 - [x] 3. 각 도어의 텍스트 input을 읽었는가?
 - [x] 4. 각 도어의 인터페이스 위치에 텍스트 input값을 넣었는가? (input값 업는 놈은 not found처리 했는가?)
 - [x] 5. 일정 간격마다 업데이트 되는가?
-- [ ] 6. 히스토리를 물어보는 요청을 받을수 있는가?
+- [x] 6. 히스토리를 물어보는 요청을 받을수 있는가?
 - [ ] 6-1. 읽은 파일들을 히스토리에 집어 넣을 수 있는가? (일정 수를 넘으면 과거 값이 지워지고 새로운 값이 들어가는 대충 circular queue형태를 띄는가?)
 - 도어 히스토리 페이지
-- [ ] 7. 히스토리 요청에따라 어떤 도어를 열지를 알수 있는가?
-- [ ] 8. 원하는 도어의 히스토리를 보여줄수 있는가?
-- [ ] 9. 히스토리 페이지에서 다시 도어 인터페이스 페이지로 넘어갈수 있는가?
+- [x] 7. 히스토리 요청에따라 어떤 도어를 열지를 알수 있는가?
+- [x] 8. 원하는 도어의 히스토리를 보여줄수 있는가?
+- [x] 9. 히스토리 페이지에서 다시 도어 인터페이스 페이지로 넘어갈수 있는가?
+- [ ] 10. 히스토리 페이지가 열려있는 동안에도 계속해서 door 정보도 받아지는가?
 
 - [ ] ex. cli글자들의 색을 바꿀수 있는가?
 - [ ] ex. cli에서 받아오는 입력들로 컴퓨터에 alert창을 띄울수 있는가?(띠롱 하고 울리면서 나오는거)
@@ -51,12 +52,12 @@
 - start section
 - receive total door num that user wants
 
-### current_door_cli
+### current_door_cli - history txt 파일에 정보 넣는거만 하면됨
 - main section
 - monitoring door situation per two seconds
 - if user want to see history, receive history command
 
-### history_reader
+### history_reader - 이게 켜져있는순간동안 cli가 계속해서 업데이트 하면서 history에 값은 계속 추가하도록 해야함, 일단 나와있는 파일을 읽는것은 가능
 - parameter: door number (int)
 - return: none
 - function: read {n}door history, show history on the cli 
