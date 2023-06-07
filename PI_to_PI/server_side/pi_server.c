@@ -19,11 +19,11 @@ void recv_file_from_client(int client_socket){
     FILE* fp;
     int file_len, message_len, recv_bytes;
     char* write_num, *pi_serial_num, *file_category, *message_contents;
-    char recv_buf[1049], file_name[10];
+    char recv_buf[1050], file_name[10];
 
     //header information: [pi_serial_num][file_category][file_len][message_len][message_contents]
 
-    recv_bytes =  recv(client_socket, recv_buf, 1049, 0);
+    recv_bytes =  recv(client_socket, recv_buf, 1050, 0);
     if (recv_bytes<0){
         printf("err!");
 	}
@@ -53,7 +53,7 @@ void recv_file_from_client(int client_socket){
     
     while(message_len == 1000){
 
-        recv_bytes =  recv(client_socket, recv_buf, 1049, 0);
+        recv_bytes =  recv(client_socket, recv_buf, 1050, 0);
         if (recv_bytes<0){
             printf("err!");
 	    }
