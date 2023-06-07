@@ -87,7 +87,6 @@ int main(void) {
     // threading test
     while (1) {
         // PI SIDE :
-        // accepting connection
         pthread_t thread_PI;
         client_address_length_PI = sizeof(client_addr_PI);
         client_socket_PI = accept(server_socket_PI, (struct sockaddr *)&client_addr_PI, &client_address_length_PI);    
@@ -111,21 +110,15 @@ int main(void) {
         pthread_create(&thread_PI, NULL, &client_handler_PI, (void*)cli);
         sleep(1);
     }
-
     //gui에서 exit sign 보냄
-    //exit 시그널을 보내거나
     // 연결을 끊기
-    close(client_socket_PI);
-    close(client_socket_GUI);
+   
 
-
-    char message[30];
-    int bytes_received = recv(client_socket_PI, message, sizeof(message)-1, 0); //3번
-    message[bytes_received] = '\0';
-    printf("from client : %s \n", message);
 
 
     if (is_end) {
+        close(client_socket_PI);
+        close(client_socket_GUI);
         close(server_socket_PI);
         close(server_socket_GUI);        
     }

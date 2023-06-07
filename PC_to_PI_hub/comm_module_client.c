@@ -40,7 +40,7 @@ int main(void) {
     // use IO function such as read and write,
     char message[] = "hello server! from client.";
     send(client_socket, message, sizeof(message),0);
-
+    
     close(client_socket);
     return 0;
 }
