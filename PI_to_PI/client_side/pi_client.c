@@ -33,7 +33,7 @@ void send_flie_to_server(int client_socket, char* file_name, char* file_category
 
     while (!feof(fp))
     {
-        message_len = fread(message_contents,1,sizeof(message_contents),0);
+        message_len = fread(message_contents,sizeof(char),sizeof(message_contents),fp);
         snprintf(header_message_contents,1042,"%010d\r\n%s\r\n%010d\r\n%010d\r\n%s\0",PI_SERIAL_NUM,file_category,file_len,message_len,message_contents);
         
         write_num = send(client_socket, header_message_contents, sizeof(header_message_contents),0);
@@ -83,10 +83,6 @@ void main() {
     char* img_name = "image_test.jpg";
     char* test_message = "Ph'nglui Mglw'nafh Cthulhu R'lyeh Wgah'nagl Fhtagn.";
 
-
-    if(send(client_sock, test_message, strlen(test_message),0) == -1){
-            printf("err!");
-    }
 
     if(send(client_sock, test_message, strlen(test_message),0) == -1){
             printf("err!");

@@ -27,6 +27,7 @@ void recv_file_from_client(int client_socket){
         printf("err!");
 	}
 
+
     pi_serial_num = strtok(recv_buf,"\r\n");
     file_category = strtok(NULL, "\r\n");
     file_len = atoi(strtok(NULL,"\r\n"));
@@ -42,9 +43,16 @@ void recv_file_from_client(int client_socket){
         fp = fopen(file_name, "wb");
     }
 
+
     fwrite(message_contents, sizeof(char), message_len,fp);
     
     while(message_len == 1000){
+
+        recv_bytes =  recv(client_socket, recv_buf, 1042, 0);
+        if (recv_bytes<0){
+            printf("err!");
+	    }
+
         pi_serial_num = strtok(recv_buf,"\r\n");
         file_category = strtok(NULL, "\r\n");
         file_len = atoi(strtok(NULL,"\r\n"));
@@ -116,6 +124,7 @@ int main(void) {
 //
     printf("test message:%s\n",buf);
 
+    recv_file_from_client(client_socket);
     recv_file_from_client(client_socket);
 
 
