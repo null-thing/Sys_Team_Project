@@ -1,0 +1,44 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <wiringPi.h>
+
+
+
+int main(){
+
+  const int LIGHT=25;
+  const int DOOR=21;
+  wiringPiSetupSys();
+  pinMode(LIGHT,INPUT);
+  pinMode(DOOR,INPUT);
+
+  int light_status=3;
+  int door_status=3;
+
+  light_status=digitalRead(LIGHT);
+  door_status=digitalRead(DOOR);
+
+  printf("light: %d\n",light_status);
+  printf("door: %d\n",door_status);
+
+  char cmd[]="libcamera-jpeg -o pic_of_room.jpg";
+
+  for(int i=0;;i++)
+  {
+
+      light_status=digitalRead(LIGHT);
+      door_status=digitalRead(DOOR);
+
+      FILE* room_now=fopen("room_now.txt","w");
+      fprintf(room_now,"light: %d\n",&light_status);
+      fprintf(room_now,"door: %d\n",&door_status);
+      fclose(room_now);
+
+      printf("light: %d\n",light_status);
+      printf("door: %d\n",door_status);
+      system(cmd);
+      delay(5000);
+
+  }
+     return 0;
+}

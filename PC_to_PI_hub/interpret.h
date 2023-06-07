@@ -7,5 +7,5 @@ typedef enum Threshold{
 };
 
 void read_text(char*);
-void interpret() ;
+void interpret(char*) ;
 #endif

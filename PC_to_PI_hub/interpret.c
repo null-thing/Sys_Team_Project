@@ -6,6 +6,6 @@ void read_text(char* text) {
 
 }
 
-void interpret() {
+void interpret(char* data) {
     
 }
