@@ -18,7 +18,7 @@
 
 
 extern int is_end;
-extern pthread_mutex_t mu_PI;
+extern pthread_mutex_t mu_PI, mu_GUI;
 extern int readercount;
 extern int num_clients_PI;
 extern Client_info* client_info_PI[MAX_CLIENTS];
@@ -28,5 +28,6 @@ void* client_handler_GUI(void*);
 void add_client(Client_info*);
 void remove_client(int);
 void send_data();
+void close_sockets();
 
 #endif

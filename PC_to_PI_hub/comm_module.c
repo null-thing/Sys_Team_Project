@@ -18,12 +18,12 @@
 #define MAX_CLIENTS 5
 #define BUFFER_SIZE 1024
 
-pthread_mutex_t mu_PI;
+pthread_mutex_t mu_PI, mu_GUI;
 int readercount = 0;
 
 Client_info* client_info_PI[MAX_CLIENTS];
 int num_clients_PI = 0;
-int is_end = 0;
+int is_end = 1;
 
 int main(void) {
     int socket_desc , client_socket_PI, client_socket_GUI;
@@ -75,17 +75,18 @@ int main(void) {
     printf("Server_PI linstening on port %d\n", PORT_NUMBER_PI);
     printf("Server_GUI linstening on port %d\n", PORT_NUMBER_GUI); 
     
-    // GUI side: 
+    // GUI side:
+    pthread_t thread_GUI;
     client_address_length_GUI = sizeof(client_addr_GUI);
     client_socket_GUI = accept(server_socket_GUI, (struct sockaddr *)&client_addr_GUI, &client_address_length_GUI);    
     if (client_socket_GUI == -1) {
         perror("Socket accepting failed");
         exit(EXIT_FAILURE);
     }
-    printf("GUI connected\n");
+    pthread_create(&thread_GUI, NULL, &client_handler_GUI, (void*)&client_socket_GUI);
     int index_PI = 0;
     // threading test
-    while (1) {
+    while (is_end) {
         // PI SIDE :
         pthread_t thread_PI;
         client_address_length_PI = sizeof(client_addr_PI);
@@ -107,20 +108,17 @@ int main(void) {
 
         add_client(cli);
         num_clients_PI+=1;
+
         pthread_create(&thread_PI, NULL, &client_handler_PI, (void*)cli);
+
+        pthread_join(thread_PI, NULL);
+        pthread_join(thread_GUI, NULL);
         sleep(1);
     }
     //gui에서 exit sign 보냄
     // 연결을 끊기
-   
-
-
-
-    if (is_end) {
-        close(client_socket_PI);
-        close(client_socket_GUI);
-        close(server_socket_PI);
-        close(server_socket_GUI);        
-    }
+    close_sockets();
+    close(server_socket_PI);
+    close(server_socket_GUI);    
     return EXIT_SUCCESS;
 }

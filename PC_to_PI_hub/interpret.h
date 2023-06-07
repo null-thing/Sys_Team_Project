@@ -23,7 +23,7 @@ typedef enum {
 }Threshold;
 
 void read_data(Client_info, char*);
-void interpret(char* , char**) ;
+void interpret(char* , char*) ;
 void write_data(Client_info, char*);
 
 #endif

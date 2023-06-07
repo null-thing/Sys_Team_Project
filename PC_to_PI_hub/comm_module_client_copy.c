@@ -35,6 +35,9 @@ int main(void) {
     }
     // do your behavior in here
 
+    while(1){
+        
+    }
 
     // 예를 들어,
     // use IO function such as read and write,
