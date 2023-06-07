@@ -5,7 +5,7 @@
 #include <arpa/inet.h>
 #include <sys/types.h>
 #include <sys/socket.h>
-int PORT_NUMBER = 8010; // set to desired port number
+int PORT_NUMBER = 8011; // set to desired port number
 char* SERVER_IP_ADDRESS = "127.0.0.1";
 
 
@@ -40,7 +40,7 @@ int main(void) {
     // use IO function such as read and write,
     char message[] = "hello server! from client.";
     send(client_socket, message, sizeof(message),0);
-    
+
     close(client_socket);
     return 0;
 }
