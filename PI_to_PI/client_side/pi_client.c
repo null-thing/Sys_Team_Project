@@ -6,6 +6,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 
+int PI_SERIAL_NUM = 1;
 int PORT_NUMBER = 8000; // set to desired port number
 char* SERVER_IP_ADDRESS = "127.0.0.1"; //테스트용 노트북의 ip주소: rpi->노트북 자료 전송
 
@@ -13,19 +14,38 @@ char* SERVER_IP_ADDRESS = "127.0.0.1"; //테스트용 노트북의 ip주소: rpi
     client pi - sensor pi
 */
 
-int send_flie_to_server(int server_socket, char* file_name, char* file_category){
+void send_flie_to_server(int client_socket, char* file_name, char* file_category){
     FILE* fp;
-    int file_len;
+    int file_len, message_len, write_num;
+    char message_contents[1000],header_message_contents[1042];
+
+    //header information: [pi_serial_num][file_category][file_len][message_len][message_contents]
     if(!strcmp(file_category, "txt")){
         fp = fopen(file_name, "r");
     }else{
         fp = fopen(file_name, "rb");
     }
 
+    fseek(fp, 0, SEEK_END);
+    file_len = (int)ftell(fp);
+    fseek(fp, 0, SEEK_SET);
+    printf("file_len: %d\n", file_len);
 
+    while (!feof(fp))
+    {
+        message_len = fread(message_contents,sizeof(char),sizeof(message_contents),fp);
+        snprintf(header_message_contents,1042,"%010d\r\n%s\r\n%010d\r\n%010d\r\n%s\0",PI_SERIAL_NUM,file_category,file_len,message_len,message_contents);
+        
+        write_num = send(client_socket, header_message_contents, sizeof(header_message_contents),0);
+        if(write_num == -1){
+            printf("err!");
+            break;
+        }
+    }
+    
+    printf("Data Send Complete!\n");
 
     fclose(fp);
-    return 0;
 }
 
 
@@ -56,70 +76,23 @@ void main() {
         perror("Connection failed");
         exit(EXIT_FAILURE);
     }
+    
+    
     // do your behavior in here
-
-    FILE* fp_txt;
-    FILE* fp_img;
-    char buf[1000];
-    int txt_len;
-    int img_len;
-    int write_num;
-
+    char* txt_name = "client_test.txt";
+    char* img_name = "image_test.jpg";
     char* test_message = "Ph'nglui Mglw'nafh Cthulhu R'lyeh Wgah'nagl Fhtagn.";
 
 
-    fp_txt = fopen("client_test.txt","r");
-    fp_img = fopen("image_test.jpg","rb");
-
-
-
-    if(send(client_sock, test_message, strlen(test_message),0) == -1){
-            printf("err!");
-    }
-
     if(send(client_sock, test_message, strlen(test_message),0) == -1){
             printf("err!");
     }
 
 
-    fseek(fp_txt, 0, SEEK_END);
-    txt_len = (int)ftell(fp_txt);
-    printf("txtlen: %d\n", txt_len);
-
-    if(send(client_sock, &txt_len, sizeof(int),0) == -1){
-            printf("err!");
-    }
-
-    fseek(fp_img, 0, SEEK_END);
-    img_len = (int)ftell(fp_img);
-    printf("txtimg: %d\n", img_len);
-
-    if(send(client_sock, &img_len, sizeof(int),0) == -1){
-            printf("err!");
-    }
-
-    while(!feof(fp_txt)){
-        fread(buf,1,sizeof(buf),fp_txt);
-        write_num = send(client_sock, buf, sizeof(buf),0);
-        if(write_num == -1){
-            printf("err!");
-            break;
-        }
-        
-    }
-    while(!feof(fp_img)){
-        fread(buf,1,sizeof(buf),fp_img);
-        write_num = send(client_sock, buf, sizeof(buf),0);
-        if(write_num == -1){
-            printf("err!");
-            break;
-        }
-    }
+    send_flie_to_server(client_sock,txt_name,"txt");
+    send_flie_to_server(client_sock,img_name,"jpg");
 
     printf("completed!\n");
-
-    fclose(fp_txt);
-    fclose(fp_img);
 
 
     close(client_sock);
