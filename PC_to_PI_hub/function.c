@@ -10,34 +10,38 @@
 
 void *client_handler_PI (void* arg){
     char buffer_in[BUFFER_SIZE];
-    
     Client_info client_socket_PI = *((Client_info*)arg);
     pthread_mutex_lock(&mu_PI);
-    printf("PI client handler\n");  
+    printf("PI client handler\n"); 
+    // interpret(); 
     pthread_mutex_unlock(&mu_PI);
-    if (is_end == -1) {
-        close(client_socket_PI.socket);
-        pthread_exit(NULL); 
-        num_clients_PI -= 1; //may cause bug, review needed
-    }  
+    while (1){
+        if (is_end == -1) {
+            close(client_socket_PI.socket);
+            pthread_exit(NULL); 
+            num_clients_PI -= 1; //may cause bug, review needed
+            break;
+        }
+    }
+      
 }
 
 void *client_handler_GUI(void* arg){   
     char buffer_out[BUFFER_SIZE];
-
+    printf("GUI connected\n");
     int client_socket_GUI = *((int*)arg);
-    // pthread_mutex_lock(&mu_GUI);
-
-
-    // recv() //exit signal
-    if (0) {is_end = -1;}
-    printf("GUI client handler\n");
-
-    // pthread_mutex_unlock(&mu_GUI);
-    return NULL;
+    pthread_mutex_lock(&mu_GUI);
+    char buffer[256];
+    while(1){
+        if(recv(client_socket_GUI, buffer, 255,0)==-1 || recv(client_socket_GUI, buffer, 255,0)==0) {
+            is_end = 0;
+            close(client_socket_GUI);
+            break;
+        }
+    }
+        
+    pthread_mutex_unlock(&mu_GUI);
 }
-
-
 
 void add_client(Client_info* client){
     pthread_mutex_lock(&mu_PI);
@@ -63,4 +67,18 @@ void remove_client(int uid){
     pthread_mutex_unlock(&mu_PI);
 }
 
-void send_data() {}
+void send_data(char* text, char** img, int* socket) {
+    send(socket, text, sizeof(text), 0);
+    int imgbytes ;
+    for (int i=0;i<num_clients_PI;i++) {
+        imgbytes = sizeof(img);
+        send(socket, img, imgbytes, 0);
+    }
+}
+
+void close_sockets() {
+    for (int i = 0; i<MAX_CLIENTS; i++){
+        close(client_info_PI[i]->socket);
+    }
+    num_clients_PI = 0;
+}

@@ -35,12 +35,11 @@ int main(void) {
     }
     // do your behavior in here
 
-
     // 예를 들어,
     // use IO function such as read and write,
     char message[] = "hello server! from client.";
     send(client_socket, message, sizeof(message),0);
-    
-    close(client_socket);
+
+    //close(client_socket);
     return 0;
 }
