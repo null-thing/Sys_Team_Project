@@ -17,7 +17,7 @@ char* SERVER_IP_ADDRESS = "127.0.0.1"; //테스트용 노트북의 ip주소: rpi
 void recv_file_from_client(int client_socket){
     FILE* fp;
     int file_len, message_len, recv_bytes;
-    char* write_num, pi_serial_num,file_category, message_contents;
+    char* write_num, *pi_serial_num, *file_category, *message_contents;
     char recv_buf[1042], file_name[10];
 
     //header information: [pi_serial_num][file_category][file_len][message_len][message_contents]

@@ -34,7 +34,7 @@ void send_flie_to_server(int client_socket, char* file_name, char* file_category
     while (!feof(fp))
     {
         message_len = fread(message_contents,1,sizeof(message_contents),0);
-        sprintf(header_message_contents,1042,"%010d\r\n%s\r\n%010d\r\n%010d\r\n%s\0",);
+        snprintf(header_message_contents,1042,"%010d\r\n%s\r\n%010d\r\n%010d\r\n%s\0",PI_SERIAL_NUM,file_category,file_len,message_len,message_contents);
         
         write_num = send(client_socket, header_message_contents, sizeof(header_message_contents),0);
         if(write_num == -1){
