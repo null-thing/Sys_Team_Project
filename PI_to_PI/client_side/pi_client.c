@@ -14,10 +14,20 @@ char* SERVER_IP_ADDRESS = "127.0.0.1"; //테스트용 노트북의 ip주소: rpi
     client pi - sensor pi
 */
 
+void bin_printer(char* input_val){
+    int i;
+    for(i=0;i<1000;i++){
+        printf("%x",input_val[i]);
+    }
+    printf("\n");
+}
+
 void send_flie_to_server(int client_socket, char* file_name, char* file_category){
     FILE* fp;
+    FILE* fp_test_1000;
     int file_len, message_len, write_num;
-    char message_contents[1000],header_message_contents[1050];
+        int mismatch = 0;
+    char message_contents[1000],header_message_contents[1033];
 
     //header information: [pi_serial_num][file_category][file_len][message_len][message_contents]
     if(!strcmp(file_category, "txt")){
@@ -25,27 +35,49 @@ void send_flie_to_server(int client_socket, char* file_name, char* file_category
     }else{
         fp = fopen(file_name, "rb");
     }
+    
+    if(!strcmp(file_category,"jpg")){
+        fp_test_1000 = fopen("image_1000.jpg","wb");
+    }
+
 
     fseek(fp, 0, SEEK_END);
     file_len = (int)ftell(fp);
     fseek(fp, 0, SEEK_SET);
-    printf("file_len: %d\n", file_len);
+    printf("file_len = %d\n",file_len);
 
     while (!feof(fp))
     {
+        memset(header_message_contents, 0, sizeof(header_message_contents));
+        memset(message_contents, 0, sizeof(message_contents));
         message_len = fread(message_contents,sizeof(char),sizeof(message_contents),fp);
-        snprintf(header_message_contents,1050,"%010d+*+*%s+*+*%010d+*+*%010d+*+*%s",PI_SERIAL_NUM,file_category,file_len,message_len,message_contents);
-        printf("%s\n",message_contents);
-
+        snprintf(header_message_contents,1033,"%010d%s%010d%010d",PI_SERIAL_NUM,file_category,file_len,message_len);
+        memcpy(header_message_contents+33, message_contents, message_len);
         write_num = send(client_socket, header_message_contents, sizeof(header_message_contents),0);
         if(write_num == -1){
             printf("err!");
             break;
         }
-    }
-    
-    printf("Data Send Complete!\n");
 
+        printf("%s",message_contents);
+
+        if(!strcmp(file_category,"jpg")){
+            fwrite(header_message_contents+33, sizeof(char), message_len,fp_test_1000);
+        }
+    }
+
+
+    printf("\n");
+
+    if(!strcmp(file_category,"jpg")){
+        fseek(fp_test_1000, 0, SEEK_END);
+        file_len = (int)ftell(fp_test_1000);
+        fseek(fp_test_1000, 0, SEEK_SET);
+        printf("file_1000_len = %d\n",file_len);
+
+
+        fclose(fp_test_1000);
+    }
     fclose(fp);
 }
 
@@ -93,7 +125,7 @@ void main() {
     send_flie_to_server(client_sock,txt_name,"txt");
     send_flie_to_server(client_sock,img_name,"jpg");
 
-    printf("completed!\n");
+    //printf("completed!\n");
 
 
     close(client_sock);
