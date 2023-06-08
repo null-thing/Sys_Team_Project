@@ -14,68 +14,83 @@ char* SERVER_IP_ADDRESS = "127.0.0.1"; //테스트용 노트북의 ip주소: rpi
     Server pi - bridge pi
 */
 
+void bin_printer(char* input_val){
+    int i;
+    for(i=0;i<1000;i++){
+        printf("%x",input_val[i]);
+    }
+    printf("\n");
+
+}
 
 void recv_file_from_client(int client_socket){
     FILE* fp;
     int file_len, message_len, recv_bytes;
-    char* write_num, *pi_serial_num, *file_category, *message_contents;
-    char recv_buf[1050], file_name[10];
+    char *message_contents, *header_divider;
+    char recv_buf[1033], file_name[10],int_holder[10],file_category[3],pi_serial_num[10],write_num[10];
+    
 
     //header information: [pi_serial_num][file_category][file_len][message_len][message_contents]
-
-    recv_bytes =  recv(client_socket, recv_buf, 1050, 0);
+    memset(recv_buf, 0, sizeof(recv_buf));
+    recv_bytes =  recv(client_socket, recv_buf, 1033, 0);
     if (recv_bytes<0){
         printf("err!");
 	}
 
 
-    pi_serial_num = strtok(recv_buf,"+*+*");
-    file_category = strtok(NULL, "+*+*");
-    file_len = atoi(strtok(NULL,"+*+*"));
-    message_len = atoi(strtok(NULL,"+*+*"));
-    message_contents = strtok(NULL,"+*+*");
+    header_divider = recv_buf;
+    strncpy(pi_serial_num,recv_buf,10);
+    strncpy(file_category,header_divider+10,3);
+    strncpy(int_holder,header_divider+13,10);
+    file_len = atoi(int_holder);
+    strncpy(int_holder,header_divider+23,10);
+    message_len = atoi(int_holder);
+    message_contents = header_divider+33;
     strcpy(file_name, pi_serial_num);
     strcat(file_name, ".");
     strcat(file_name, file_category);
+
 
     if(!strcmp(file_category, "txt")){
         fp = fopen(file_name, "w");
     }else{
         fp = fopen(file_name, "wb");
     }
-
-    printf("%s\n",message_contents);
-
+    //printf("filename:%s\n",file_name);
+    //printf("filelen:%d\n",file_len);
+    //printf("messagelen:%d\n",message_len);
+    //printf("%x\n",recv_buf);
+    //bin_printer(message_contents);
 
     fwrite(message_contents, sizeof(char), message_len,fp);
 
-    printf("%s\n",message_contents);
     
     while(message_len == 1000){
-
-        recv_bytes =  recv(client_socket, recv_buf, 1050, 0);
+        memset(recv_buf, 0, sizeof(recv_buf));
+        recv_bytes =  recv(client_socket, recv_buf, 1033, 0);
         if (recv_bytes<0){
             printf("err!");
 	    }
 
-        pi_serial_num = strtok(recv_buf,"+*+*");
-        file_category = strtok(NULL, "+*+*");
-        file_len = atoi(strtok(NULL,"+*+*"));
-        message_len = atoi(strtok(NULL,"+*+*"));
-        message_contents = strtok(NULL,"+*+*");
+        header_divider = recv_buf;
+        strncpy(pi_serial_num,recv_buf,10);
+        strncpy(file_category,header_divider+10,3);
+        strncpy(int_holder,header_divider+13,10);
+        file_len = atoi(int_holder);
+        strncpy(int_holder,header_divider+23,10);
+        message_len = atoi(int_holder);
+        message_contents = header_divider+33;
         strcpy(file_name, pi_serial_num);
         strcat(file_name, ".");
         strcat(file_name, file_category);
 
-        printf("%s\n",message_contents);
-
+        //printf("%x\n",recv_buf);
+        //bin_printer(message_contents);
 
         fwrite(message_contents, sizeof(char), message_len,fp);
-
-        printf("%s\n",message_contents);
     }
 
-    printf("file recv complete!\n");
+    //printf("file recv complete!\n");
     fclose(fp);
 }
 int main(void) {
@@ -133,7 +148,7 @@ int main(void) {
     buf[recv_bytes] = '\0';
 
 //
-    printf("test message:%s\n",buf);
+    //printf("test message:%s\n",buf);
 
     recv_file_from_client(client_socket);
     recv_file_from_client(client_socket);
