@@ -27,7 +27,8 @@ void* client_handler_PI(void*);
 void* client_handler_GUI(void*);
 void add_client(Client_info*);
 void remove_client(int);
-void send_data();
+void send_data(char* , char** , int*);
 void close_sockets();
+void* exit_handler(void*);
 
 #endif

@@ -18,7 +18,7 @@
 #define MAX_CLIENTS 5
 #define BUFFER_SIZE 1024
 
-pthread_mutex_t mu_PI, mu_GUI;
+pthread_mutex_t mu_PI = PTHREAD_MUTEX_INITIALIZER;
 int readercount = 0;
 
 Client_info* client_info_PI[MAX_CLIENTS];
@@ -50,6 +50,12 @@ int main(void) {
     server_addr_GUI.sin_family = AF_INET;
     server_addr_GUI.sin_addr.s_addr = INADDR_ANY; // Listen on all available interfaces
     server_addr_GUI.sin_port = htons(PORT_NUMBER_GUI); // Set the desired port number
+
+    int option;
+    int optlen = sizeof(option);
+    option=1;
+    setsockopt(server_socket_GUI, SOL_SOCKET, SO_REUSEADDR, &option, optlen);
+    setsockopt(server_socket_PI, SOL_SOCKET, SO_REUSEADDR, &option, optlen);
 
     if (bind(server_socket_PI, (struct sockaddr *) &server_addr_PI, sizeof(server_addr_PI)) == -1) {
         perror("Socket binding failed");
@@ -86,7 +92,10 @@ int main(void) {
     pthread_create(&thread_GUI, NULL, &client_handler_GUI, (void*)&client_socket_GUI);
     int index_PI = 0;
     // threading test
-    while (is_end) {
+    pthread_t thread_checkexit;
+    pthread_create(&thread_checkexit, NULL, &exit_handler, NULL);
+
+    while (1) {
         // PI SIDE :
         pthread_t thread_PI;
         client_address_length_PI = sizeof(client_addr_PI);
@@ -100,7 +109,12 @@ int main(void) {
             close(client_socket_PI);
             continue;
         }
-        
+        pthread_mutex_lock(&mu_PI);
+        if (is_end == -1) {
+            break;
+        }
+        pthread_mutex_unlock(&mu_PI);
+
         Client_info* cli = (Client_info*)malloc(sizeof(Client_info));
         cli->address = client_addr_PI;
         cli->socket =  client_socket_PI;
@@ -111,13 +125,11 @@ int main(void) {
 
         pthread_create(&thread_PI, NULL, &client_handler_PI, (void*)cli);
 
-        pthread_join(thread_PI, NULL);
-        pthread_join(thread_GUI, NULL);
         sleep(1);
     }
+
     //gui에서 exit sign 보냄
     // 연결을 끊기
-    close_sockets();
     close(server_socket_PI);
     close(server_socket_GUI);    
     return EXIT_SUCCESS;

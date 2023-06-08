@@ -9,11 +9,15 @@
 
 
 void *client_handler_PI (void* arg){
+    printf("is_end : %d\n",is_end);
     char buffer_in[BUFFER_SIZE];
     Client_info client_socket_PI = *((Client_info*)arg);
     pthread_mutex_lock(&mu_PI);
     printf("PI client handler\n"); 
-    // interpret(); 
+    // do handler function
+    // read_data
+    // interpret()
+    // write data()
     pthread_mutex_unlock(&mu_PI);
     while (1){
         if (is_end == -1) {
@@ -28,19 +32,27 @@ void *client_handler_PI (void* arg){
 
 void *client_handler_GUI(void* arg){   
     char buffer_out[BUFFER_SIZE];
+    
     printf("GUI connected\n");
     int client_socket_GUI = *((int*)arg);
-    pthread_mutex_lock(&mu_GUI);
     char buffer[256];
-    while(1){
-        if(recv(client_socket_GUI, buffer, 255,0)==-1 || recv(client_socket_GUI, buffer, 255,0)==0) {
-            is_end = 0;
-            close(client_socket_GUI);
-            break;
-        }
+    ssize_t bytes;
+    while((bytes = read(client_socket_GUI, buffer, sizeof(buffer) - 1)) > 0){
+        buffer[bytes] = '\0';
+        printf("Message from client: %s\n", buffer);
     }
-        
-    pthread_mutex_unlock(&mu_GUI);
+    printf("Client disconnected. Closing all connections and exiting.\n"); 
+    pthread_mutex_lock(&mu_PI);
+    is_end = -1;
+    int dummy_socket = socket(AF_INET, SOCK_STREAM, 0);
+    struct sockaddr_in server_address;
+    memset(&server_address, 0, sizeof(server_address));
+    server_address.sin_family = AF_INET;
+    server_address.sin_port = htons(PORT_NUMBER_PI);
+    connect(dummy_socket, (struct sockaddr *)&server_address, sizeof(server_address));    
+    
+    pthread_mutex_unlock(&mu_PI);
+    return NULL;
 }
 
 void add_client(Client_info* client){
@@ -68,11 +80,11 @@ void remove_client(int uid){
 }
 
 void send_data(char* text, char** img, int* socket) {
-    send(socket, text, sizeof(text), 0);
+    send(*socket, text, sizeof(text), 0);
     int imgbytes ;
     for (int i=0;i<num_clients_PI;i++) {
         imgbytes = sizeof(img);
-        send(socket, img, imgbytes, 0);
+        send(*socket, img, imgbytes, 0);
     }
 }
 
@@ -81,4 +93,8 @@ void close_sockets() {
         close(client_info_PI[i]->socket);
     }
     num_clients_PI = 0;
+}
+
+void* exit_handler(void* arg){
+    if (is_end==-1) close_sockets();
 }
