@@ -41,6 +41,8 @@ int main(void) {
 
     // 예를 들어,
     // use IO function such as read and write,
+
+    
     char message[] = "hello server! from client.";
     send(client_socket, message, sizeof(message),0);
 

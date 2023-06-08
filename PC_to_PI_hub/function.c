@@ -5,19 +5,20 @@
 #define PORT_NUMBER_PI 8010    
 #define PORT_NUMBER_GUI 8011
 #define MAX_CLIENTS 5
-#define BUFFER_SIZE 1024
-
+#define BUFFER_SIZE 10241
 
 void *client_handler_PI (void* arg){
-    printf("is_end : %d\n",is_end);
     char buffer_in[BUFFER_SIZE];
+    Rcvdata recieved;
     Client_info client_socket_PI = *((Client_info*)arg);
     pthread_mutex_lock(&mu_PI);
     printf("PI client handler\n"); 
+
     // do handler function
-    // read_data
-    // interpret()
-    // write data()
+    char* data;
+    read_data(&recieved, &client_socket_PI);
+    interpret(&recieved, &data);
+    
     pthread_mutex_unlock(&mu_PI);
     while (1){
         if (is_end == -1) {
@@ -79,12 +80,16 @@ void remove_client(int uid){
     pthread_mutex_unlock(&mu_PI);
 }
 
-void send_data(char* text, char** img, int* socket) {
-    send(*socket, text, sizeof(text), 0);
-    int imgbytes ;
-    for (int i=0;i<num_clients_PI;i++) {
-        imgbytes = sizeof(img);
-        send(*socket, img, imgbytes, 0);
+void* send_data(void* arg) {
+    int* socket;
+
+    while (1){
+        pthread_mutex_lock(&mu_PI);
+        while (strlen(shared_data) == 0) {
+            pthread_cond_wait(&cond, &mu_PI);
+        }
+        send(*socket, shared_data, sizeof(*shared_data), 0);
+        pthread_mutex_unlock(&mu_PI);
     }
 }
 
@@ -93,8 +98,4 @@ void close_sockets() {
         close(client_info_PI[i]->socket);
     }
     num_clients_PI = 0;
-}
-
-void* exit_handler(void* arg){
-    if (is_end==-1) close_sockets();
 }

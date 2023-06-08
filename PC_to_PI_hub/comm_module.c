@@ -18,12 +18,15 @@
 #define MAX_CLIENTS 5
 #define BUFFER_SIZE 1024
 
+char shared_data[1024];
 pthread_mutex_t mu_PI = PTHREAD_MUTEX_INITIALIZER;
+pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
 int readercount = 0;
 
 Client_info* client_info_PI[MAX_CLIENTS];
 int num_clients_PI = 0;
 int is_end = 1;
+
 
 int main(void) {
     int socket_desc , client_socket_PI, client_socket_GUI;
@@ -91,10 +94,9 @@ int main(void) {
     }
     pthread_create(&thread_GUI, NULL, &client_handler_GUI, (void*)&client_socket_GUI);
     int index_PI = 0;
-    // threading test
-    pthread_t thread_checkexit;
-    pthread_create(&thread_checkexit, NULL, &exit_handler, NULL);
 
+    pthread_t thread_send;
+    pthread_create(&thread_send, NULL, &send_data, NULL);
     while (1) {
         // PI SIDE :
         pthread_t thread_PI;
@@ -104,17 +106,17 @@ int main(void) {
             perror("Socket accepting failed");
             exit(EXIT_FAILURE);
         }
+
+        pthread_mutex_lock(&mu_PI);
+        if (is_end == -1) break;
+        pthread_mutex_unlock(&mu_PI);
+
         if (num_clients_PI >= MAX_CLIENTS) {
             printf("Reject : Already max number of PI hub clients\n");
             close(client_socket_PI);
             continue;
         }
-        pthread_mutex_lock(&mu_PI);
-        if (is_end == -1) {
-            break;
-        }
-        pthread_mutex_unlock(&mu_PI);
-
+    
         Client_info* cli = (Client_info*)malloc(sizeof(Client_info));
         cli->address = client_addr_PI;
         cli->socket =  client_socket_PI;
@@ -128,8 +130,8 @@ int main(void) {
         sleep(1);
     }
 
-    //gui에서 exit sign 보냄
-    // 연결을 끊기
+    // GUI로부터 연결 종료, close server socket
+    // each client socket was already closed by its handler
     close(server_socket_PI);
     close(server_socket_GUI);    
     return EXIT_SUCCESS;
