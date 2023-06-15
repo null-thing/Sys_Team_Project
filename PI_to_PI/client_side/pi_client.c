@@ -114,19 +114,31 @@ void main() {
     // do your behavior in here
     char* txt_name = "client_test.txt";
     char* img_name = "image_test.jpg";
-    char* test_message = "Ph'nglui Mglw'nafh Cthulhu R'lyeh Wgah'nagl Fhtagn.";
+/*    char* test_message = "Ph'nglui Mglw'nafh Cthulhu R'lyeh Wgah'nagl Fhtagn.";
 
 
     if(send(client_sock, test_message, strlen(test_message),0) == -1){
             printf("err!");
     }
 
-
+*/  int i = 0;
+    int is_exit = 1;
+    char *message = "connection?";
+while(is_exit){
+    i = i+ 1;
+    if(i%2 == 1){
     send_flie_to_server(client_sock,txt_name,"txt");
-    send_flie_to_server(client_sock,img_name,"jpg");
+    }else{    
+    //send_flie_to_server(client_sock,img_name,"jpg");
+    i = 0;
+    }
+    //if( send(client_sock , message , strlen(message) , 0) < 0){
+	//	puts("Send failed");
+    //    is_exit = 0;
+	//	break;	}
 
-    //printf("completed!\n");
-
+    printf("completed!\n");
+}
 
     close(client_sock);
 }
