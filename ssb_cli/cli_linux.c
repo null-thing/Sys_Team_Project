@@ -14,8 +14,76 @@
 #define SERVER_PORT 8080
 #define BUFFER_SIZE 1024
 
+void socketconnect(){
+	int socket_desc;
+	struct sockaddr_in server;
+	char *message , server_reply[2000];
+	
+	//Create socket
+	socket_desc = socket(AF_INET , SOCK_STREAM , 0);
+	if (socket_desc == -1) printf("Could not create socket");
+		
+	server.sin_addr.s_addr = inet_addr("127.0.0.1");
+	server.sin_family = AF_INET;
+	server.sin_port = htons( 8080 );
 
+	//Connect to remote server
+	if (connect(socket_desc , (struct sockaddr *)&server , sizeof(server)) < 0){
+		puts("connect error");
+		return 1;
+	}
+	
+	puts("Connected\n");
+	
+	if (recv(socket_desc, server_reply , 2000 , 0) < 0){
+		puts("recv failed");
+	}
+	// puts("Reply received\n");
+	puts(server_reply);
+    size_t reply_len = strlen(server_reply);
+    int doornum, dooropen, lighton = process_byte_string((void*)server_reply, reply_len);
+     FILE* file = fopen("door.txt", "w");
+     if (file == NULL){
+        printf("can't read file \n");
+        return 1;
+     }
+     fprintf(file, "%d\n%d\n%d\n", doornum, dooropen, lighton);
+     fclose(file);
+}
 
+int process_byte_string(const char* byte_string, size_t byte_string_length) {
+    // Extracting values from the byte string using casting
+    char sdoor[2];
+    strncpy(sdoor, byte_string, 1);
+    int door_number = atoi(sdoor);
+    char sopen[2];
+    strncpy(sopen, byte_string+1, 1);
+    int door_open = atoi(sopen);
+    char slight[2];
+    strncpy(slight, byte_string+2, 1);
+    int light_on = atoi(slight);
+
+    char img[byte_string_length];
+    strncpy(img, byte_string+4, byte_string_length-4);
+    const char* image_data = img;
+
+    // Saving the image as a jpg file
+    FILE* image_file = fopen("image.jpg", "wb");
+    if (image_file == NULL) {
+        printf("Failed to open the image file\n");
+        return;
+    }
+
+    fwrite(image_data, sizeof(char), byte_string_length - 3 * sizeof(int), image_file);
+    fclose(image_file);
+
+    // Printing the extracted values
+    printf("Door Number: %d\n", door_number);
+    printf("Door Open: %d\n", door_open);
+    printf("Light On: %d\n", light_on);
+
+    return door_number, door_open, light_on;
+}
 
 int start_door_num(){
     int num;
@@ -87,11 +155,11 @@ int history_reader(const char* datapath, int dnum){ // when you request {n}door 
     char quitcommand[100];
     clear();
     if (file == NULL) {// if {n} door history is not found
-        printw("-----------------------------------------------------\n");
+        printw("+---------------------------------------------------+\n");
         printw("|                                                   |");
         printw("\n|          Door %i's history is not found            |\n", dnum);
         printw("|                                                   |\n");
-        printw("-----------------------------------------------------");
+        printw("+---------------------------------------------------+");
         refresh();
         sleep(2);
         return 1;
@@ -112,6 +180,9 @@ int history_reader(const char* datapath, int dnum){ // when you request {n}door 
 
 
 int main() {
+    socketconnect();
+
+
     const char* datapath = "testfile/door";
     printf("\n");
     // -----------------------door input session---------------------------
@@ -197,11 +268,11 @@ int main() {
             }
             else{
                 clear();
-                printw("-----------------------------------------------------\n");
+                printw("+---------------------------------------------------+\n");
                 printw("|                                                   |");
                 printw("\n|        please insert number, not alpahbet         |\n");
                 printw("|                                                   |\n");
-                printw("-----------------------------------------------------");
+                printw("+---------------------------------------------------+");
                 refresh();
                 sleep(2);
             }
