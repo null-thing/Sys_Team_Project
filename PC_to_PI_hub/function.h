@@ -23,7 +23,8 @@ extern pthread_cond_t cond;
 extern int readercount;
 extern int num_clients_PI;
 extern Client_info* client_info_PI[MAX_CLIENTS];
-extern char shared_data[1024];
+extern Interpretdata clients_interpreted[MAX_CLIENTS];
+extern char* shared_data;
 
 void* client_handler_PI(void*);
 void* client_handler_GUI(void*);
