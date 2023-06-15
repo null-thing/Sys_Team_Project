@@ -18,12 +18,13 @@
 #define MAX_CLIENTS 5
 #define BUFFER_SIZE 1024
 
-char shared_data[1024];
+char* shared_data;
 pthread_mutex_t mu_PI = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
 int readercount = 0;
 
 Client_info* client_info_PI[MAX_CLIENTS];
+Interpretdata clients_interpreted[MAX_CLIENTS];
 int num_clients_PI = 0;
 int is_end = 1;
 
@@ -32,6 +33,8 @@ int main(void) {
     int socket_desc , client_socket_PI, client_socket_GUI;
     socklen_t client_address_length_PI, client_address_length_GUI;
 
+    for (int i=0; i<MAX_CLIENTS; i++) client_info_PI[i]->valid = 0;
+    
     int server_socket_PI = socket(AF_INET, SOCK_STREAM, 0);
     int server_socket_GUI = socket(AF_INET, SOCK_STREAM, 0);
     if (server_socket_PI == -1) {
@@ -75,7 +78,7 @@ int main(void) {
         exit(EXIT_FAILURE);
     }
 
-    if (listen(server_socket_GUI, 1) == -1) { // Maximum 5 pending connections
+    if (listen(server_socket_GUI, 1) == -1) { // allows only one gui
         perror("Socket listening failed");
         exit(EXIT_FAILURE);
     }
