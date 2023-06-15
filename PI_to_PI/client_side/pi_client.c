@@ -7,7 +7,7 @@
 #include <sys/socket.h>
 
 int PI_SERIAL_NUM = 1;
-int PORT_NUMBER = 8000; // set to desired port number
+int PORT_NUMBER = 8010; // set to desired port number
 char* SERVER_IP_ADDRESS = "127.0.0.1"; //테스트용 노트북의 ip주소: rpi->노트북 자료 전송
 
 /*  
@@ -85,48 +85,60 @@ void send_flie_to_server(int client_socket, char* file_name, char* file_category
 void main() {
     int client_sock;
     struct sockaddr_in server_addr;
+    int recv_bytes;
+    int terminate_sig = 1;
+    char* txt_name = "client_test.txt"; //rpi file name : txt
+    char* img_name = "image_test.jpg";  //rpi img name : img
     
-    
-    client_sock = socket(AF_INET, SOCK_STREAM, 0);
+    while(terminate_sig){
+        client_sock = socket(AF_INET, SOCK_STREAM, 0);
 
-    memset(&server_addr, 0, sizeof(server_addr));
-    if (client_sock == -1){
-        perror("socket creation failed");
+        memset(&server_addr, 0, sizeof(server_addr));
+        if (client_sock == -1){
+            perror("socket creation failed");
+            exit(EXIT_FAILURE);
+        }
+
+        server_addr.sin_family = AF_INET;
+        server_addr.sin_port = htons(PORT_NUMBER);
+
+
+        if (inet_pton(AF_INET, SERVER_IP_ADDRESS, &server_addr.sin_addr.s_addr) <= 0) {
+        perror("Invalid server address");
         exit(EXIT_FAILURE);
-    }
-
-    server_addr.sin_family = AF_INET;
-    server_addr.sin_port = htons(PORT_NUMBER);
+        }
 
 
-    if (inet_pton(AF_INET, SERVER_IP_ADDRESS, &server_addr.sin_addr.s_addr) <= 0) {
-    perror("Invalid server address");
-    exit(EXIT_FAILURE);
-    }
-
-
-    if (connect(client_sock, (struct sockaddr *)&server_addr, sizeof(server_addr)) == -1) {
-        perror("Connection failed");
-        exit(EXIT_FAILURE);
-    }
+        if (connect(client_sock, (struct sockaddr *)&server_addr, sizeof(server_addr)) == -1) {
+            perror("Connection failed");
+            exit(EXIT_FAILURE);
+        }
     
     
-    // do your behavior in here
-    char* txt_name = "client_test.txt";
-    char* img_name = "image_test.jpg";
-    char* test_message = "Ph'nglui Mglw'nafh Cthulhu R'lyeh Wgah'nagl Fhtagn.";
+        // do your behavior in here
+        
+        //char* test_message = "Ph'nglui Mglw'nafh Cthulhu R'lyeh Wgah'nagl Fhtagn.";
+        if(send(client_sock, &PI_SERIAL_NUM, sizeof(PI_SERIAL_NUM),0) == -1){
+                printf("err!");
+        }
+        
 
-
-    if(send(client_sock, test_message, strlen(test_message),0) == -1){
+        recv_bytes = recv(client_sock, &terminate_sig, sizeof(terminate_sig) , 0);
+        if (recv_bytes<0){
             printf("err!");
+    	}
+        if(!terminate_sig){
+            close(client_sock);
+            break;
+        }
+        printf("terminate sig: %d\n",terminate_sig);
+
+        send_flie_to_server(client_sock,txt_name,"txt");
+        send_flie_to_server(client_sock,img_name,"jpg");
+
+        printf("completed!\n");
+
+
+        close(client_sock);
     }
-
-
-    send_flie_to_server(client_sock,txt_name,"txt");
-    send_flie_to_server(client_sock,img_name,"jpg");
-
-    //printf("completed!\n");
-
-
-    close(client_sock);
 }
