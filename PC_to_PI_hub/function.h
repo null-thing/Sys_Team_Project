@@ -18,16 +18,19 @@
 
 
 extern int is_end;
-extern pthread_mutex_t mu_PI, mu_GUI;
+extern pthread_mutex_t mu_PI;
+extern pthread_cond_t cond;
 extern int readercount;
 extern int num_clients_PI;
 extern Client_info* client_info_PI[MAX_CLIENTS];
+extern Interpretdata clients_interpreted[MAX_CLIENTS];
+extern char* shared_data;
 
 void* client_handler_PI(void*);
 void* client_handler_GUI(void*);
 void add_client(Client_info*);
 void remove_client(int);
-void send_data();
+void* send_data(void*);
 void close_sockets();
 
 #endif
